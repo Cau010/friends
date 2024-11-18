@@ -1,0 +1,310 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Login - Oculare
+{% endblock %}
+
+{% block unico %}
+{% load static %}
+<link rel="stylesheet" href="{% static 'css/login.css' %}">
+{% endblock %}
+{% block content %}
+<span id="cpfErro" class="alert alert-error"  style="display: none;">CPF inválido</span>
+{% if messages %}
+    {% for message in messages %}
+        <div id="mensagem-{{ forloop.counter }}" class="alert alert-{{ message.tags }}">{{ message }}</div>
+    {% endfor %}
+{% endif %}
+
+<div class="alert-container">
+    <div id="erro" class="alert hidden">
+        <p>As senhas não são iguais!</p>
+    </div>
+</div>   
+<div id="erroForcaSenha" class="erro-senhas" style="display: none;">A senha é muito fraca!</div>
+
+<div class="tudo surgimento">
+        
+            
+            <div class="login active">
+                <form class="form" method="POST">
+                    {% csrf_token %}
+                    <center>
+                    <p class="lol">Entrar com sua conta</p>
+                </center>   
+                    <div class="input-container container-login">
+                        <input type="text" id="inputEmailLogin" name="email" required>
+                        <label for="inputEmailLogin" class="label fonte">Email</label>
+                        <div class="underline"></div>
+                    </div>
+                    <br>
+                    <div class="input-container senha">
+                        <input type="password" id="inputPasswordLogin" name="senha" required>
+                        <label for="inputPasswordLogin" class="label fonte">Senha</label>
+                        <div class="underline"></div>
+                        <span class="toggle-password" onclick="togglePassword('inputPasswordLogin')">
+                            <img class="olho primeira" src="{% static 'img/login/olho.png' %}" alt="Olho Senha">
+                        </span>
+                    </div>
+                    <div class="espaço">
+                        <label class="fraseinter">Não tem conta?  <a class="linkinter cadastre"> Cadastre-se aqui</a></label> 
+                        <label class="fraseinter"><a class="linkinter esqueceu-senha"> Esqueceu a Senha</a></label>
+                    </div>
+                    <button class="oauthButton google" onclick="window.location.href='{% url 'google_login' %}'">
+                        <svg class="icon" viewBox="0 0 24 24">
+                            <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"></path>
+                            <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"></path>
+                            <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"></path>
+                            <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"></path>
+                        </svg>
+                        <h2 class="continuar">Continue com o Google</h2>
+                    </button>
+                    
+                    <button class="logar">Logar</button>
+                </form>
+            </div>
+
+            <div class="cadastro">
+                <form class="form" onsubmit="return validateForm()" action="{% url 'listagem_usuarios' %}" method="post">
+                    {% csrf_token %}
+                    <center>
+                    <p class="lol2">Registre-se</p>
+                    </center>
+                    <div class="input-container2" style="margin-top: -2vw;">
+                        <input type="text" id="inputCPF" required 
+                               pattern="\d{3}\.\d{3}\.\d{3}-\d{2}" 
+                               title="O CPF deve estar no formato 000.000.000-00" 
+                               maxlength="14" 
+                                
+                               oninput="formatarCPF(this)" 
+                               name="cpf">
+                        <label for="inputCPF" class="label fonte">CPF</label>
+                        
+                        <div class="underline"></div>
+                    </div>
+                    <div class="input-container2">
+                        <input name="nome" type="text" id="inputUsuario" required value="{{ request.user.first_name }}">
+                        <label for="inputUsuario" class="label fonte">Nome</label>
+                        <div class="underline"></div>
+                    </div>
+                    <div class="input-container2">
+                        <input name="email" type="email" id="inputEmailRegistro" required value="{{ request.user.email }}">
+                        <label for="inputEmailRegistro" class="label fonte">Email</label>
+                        <div class="underline"></div>
+                    </div>
+                    <div class="input-container2 senha">
+                        <input name="senha" type="password" id="inputPassword" required oninput="verificarForcaSenha()">
+                        <label for="inputPassword" class="label fonte">Senha</label>
+                        <div class="underline"></div>
+                        <span class="toggle-password" onclick="togglePassword('inputPassword')">
+                            <img class="olho primeira" src="{% static 'img/login/olho.png' %}" alt="Olho Senha">
+                        </span>
+                    </div>
+                    <div class="input-container2 senha">
+                        <input type="password" id="inputConfirmPassword" required>
+                        <label for="inputConfirmPassword" class="label fonte">Confirme a Senha</label>
+                        <div class="underline"></div>
+                        <span class="toggle-password" onclick="togglePassword('inputConfirmPassword')">
+                            <img class="olho primeira" src="{% static 'img/login/olho.png' %}" alt="Olho Senha">
+                        </span>
+                    </div>
+                    <div id="forcaSenha" class="forca-senha" style="font-size: 1;">Força da senha: </div>
+            <br>
+                    <label class="fraseinter" style="margin-top: -0.5vw;">Já tem conta? <a class="linkinter logar-aqui">Logar aqui</a></label>
+                    <button class="oauthButton google" onclick="window.location.href='{% url 'google_login' %}'">
+                        <svg class="icon" viewBox="0 0 24 24">
+                            <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"></path>
+                            <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"></path>
+                            <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"></path>
+                            <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"></path>
+                        </svg>
+                        <h2 class="continuar">Continue com o Google</h2>
+                    </button>
+                    
+                    <button type="submit" class="logar">Registrar</button>
+                </form>
+            </div>
+            
+
+            <div class="esqueci">
+                <form class="form">
+                    <center>
+                    <p class="lol3">Esqueceu sua senha</p>
+                    </center>
+                    <h2 class="texto">Enviaremos um e-mail com instruções sobre como redefinir a senha da sua conta.</h2>
+                    <div class="input-container3">
+                        <input type="email" id="input" required>
+                        <label for="input" class="label fonte">Email</label>
+                        <div class="underline"></div>
+                    </div>
+                    <button class="logar espaco">Recuperar senha</button>
+                    <label class="fraseinter"><a class="linkinter voltar"> Voltar</a></label>
+                </form>
+            </div>
+
+    </div>
+
+    <script>
+          let senhaForte = false; // variável para armazenar a força da senha
+
+function verificarForcaSenha() {
+    var senha = document.getElementById('inputPassword').value;
+    var forcaSenha = document.getElementById('forcaSenha');
+    var forca = 0;
+
+    if (/[A-Z]/.test(senha)) forca++; // Contém letra maiúscula
+    if (/[a-z]/.test(senha)) forca++; // Contém letra minúscula
+    if (/[0-9]/.test(senha)) forca++; // Contém número
+    if (/[\W]/.test(senha)) forca++;  // Contém caractere especial
+    if (senha.length >= 8) forca++;   // Pelo menos 8 caracteres
+
+    if (forca < 3) {
+        forcaSenha.textContent = 'Força da senha: Fraca';
+        forcaSenha.style.color = 'red';
+        senhaForte = false;
+    } else if (forca === 3 || forca === 4) {
+        forcaSenha.textContent = 'Força da senha: Média';
+        forcaSenha.style.color = 'orange';
+        senhaForte = true;
+    } else {
+        forcaSenha.textContent = 'Força da senha: Forte';
+        forcaSenha.style.color = 'green';
+        senhaForte = true;
+    }
+}
+        function togglePassword(passwordId) {
+            var passwordField = document.getElementById(passwordId);
+            if (passwordField.type === "password") {
+                passwordField.type = "text";
+            } else {
+                passwordField.type = "password";
+            }
+        }
+
+        function validateForm() {
+            var password = document.getElementById("inputPassword").value;
+            var confirmPassword = document.getElementById("inputConfirmPassword").value;
+
+            if (password !== confirmPassword) {
+                document.getElementById("erro").style.display = "block";
+                
+                // Oculta a mensagem de erro após 5 segundos
+                setTimeout(function() {
+                    document.getElementById("erro").style.display = "none";
+                }, 5000);
+
+                return false;
+            }
+
+            document.getElementById("erro").style.display = "none";
+            return true;
+        }
+        
+        setTimeout(function() {
+            var messages = document.querySelectorAll('[id^="mensagem-"]');
+            messages.forEach(function(message) {
+                message.style.opacity = '0';  // Gradualmente esmaece a mensagem
+            });
+        }, 5000); // 5000 milissegundos = 5 segundos
+
+        //Campo CPF
+
+        function formatarCPF(campo) {
+    let cpf = campo.value.replace(/\D/g, '');
+    if (cpf.length > 11) cpf = cpf.slice(0, 11);
+    cpf = cpf.replace(/(\d{3})(\d)/, '$1.$2');
+    cpf = cpf.replace(/(\d{3})(\d)/, '$1.$2');
+    cpf = cpf.replace(/(\d{3})(\d{2})$/, '$1-$2');
+    campo.value = cpf;
+}
+
+    function validarCPF(cpf) {
+        cpf = cpf.replace(/\D/g, '');
+        
+        if (cpf.length !== 11 || /^(\d)\1+$/.test(cpf)) {
+            mostrarErro(true);
+            return false;
+        }
+
+        let soma = 0;
+        for (let i = 0; i < 9; i++) {
+            soma += parseInt(cpf.charAt(i)) * (10 - i);
+        }
+        let primeiroDigito = (soma * 10) % 11;
+        if (primeiroDigito === 10 || primeiroDigito === 11) primeiroDigito = 0;
+
+        if (primeiroDigito !== parseInt(cpf.charAt(9))) {
+            mostrarErro(true);
+            return false;
+        }
+
+        soma = 0;
+        for (let i = 0; i < 10; i++) {
+            soma += parseInt(cpf.charAt(i)) * (11 - i);
+        }
+        let segundoDigito = (soma * 10) % 11;
+        if (segundoDigito === 10 || segundoDigito === 11) segundoDigito = 0;
+
+        if (segundoDigito !== parseInt(cpf.charAt(10))) {
+            mostrarErro(true);
+            return false;
+        }
+
+        mostrarErro(false);
+        return true;
+    }
+
+    function mostrarErro(mostrar) {
+        const erroElement = document.getElementById('cpfErro');
+        erroElement.style.display = mostrar ? 'block' : 'none';
+        
+        if (mostrar) {
+            setTimeout(() => {
+                erroElement.style.display = 'none';
+            }, 3000); // Oculta a mensagem após 3 segundos
+        }
+    }
+
+    function validateForm() {
+        const cpf = document.getElementById('inputCPF').value;
+        if (!validarCPF(cpf)) {
+            return false;
+        }
+        return true;
+    }
+
+     // Função para alternar entre as seções
+     function secoes(mostrar_secoes) {
+            // Esconde todas as seções
+            document.querySelectorAll('.login, .cadastro, .esqueci').forEach(div => {
+                div.classList.remove('active');
+            });
+            // Mostra a seção solicitada
+            document.querySelector('.' + mostrar_secoes).classList.add('active');
+        }
+
+        // Eventos para os links
+        document.querySelector('.cadastre').addEventListener('click', () => {
+            secoes('cadastro');
+        });
+
+        document.querySelector('.esqueceu-senha').addEventListener('click', () => {
+            secoes('esqueci');
+        });
+
+        document.querySelectorAll('.voltar').forEach(link => {
+            link.addEventListener('click', () => {
+                secoes('login');
+            });
+        });
+
+        // Observação: alteração para garantir que o evento "Logar aqui" funcione
+        document.querySelector('.logar-aqui').addEventListener('click', () => {
+            secoes('login');
+        });
+
+
+
+        
+    </script>
+{% endblock %}
